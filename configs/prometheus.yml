@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 10s
+  external_labels:
+    monitor: 'docker-compose'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+    relabel_configs:
+      - source_labels: [ '__address__' ]
+        target_label: 'environment'
+        replacement: 'development'
+
+  - job_name: 'simple-app'
+    static_configs:
+      - targets: ['simple-app:8080']
+    relabel_configs:
+      - source_labels: [ '__address__' ]
+        target_label: 'environment'
+        replacement: 'development'

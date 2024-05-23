@@ -1,0 +1,40 @@
+version: '3.7'
+services:
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.52.0
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:10.4.3
+    environment:
+      - GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource,goshposh-metaqueries-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=vertamedia-clickhouse-datasource,goshposh-metaqueries-datasource
+      - GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_SIGNOUT_MENU=true
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning
+
+  simple-app:
+    build: .
+    container_name: simple-app
+    ports:
+      - "8080:8080"
+    depends_on:
+       prometheus:
+         condition: service_started
+       grafana:
+         condition: service_started
+
